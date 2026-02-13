@@ -16,6 +16,11 @@
   <div class="app">
     <header class="header">
       <div class="header-inner">
+        <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
         <div class="brand">
           <span class="brand-icon" aria-hidden="true">🛒</span>
           <div>
@@ -23,7 +28,7 @@
             <p class="brand-tagline">Inventory & products</p>
           </div>
         </div>
-        <div class="header-actions">
+        <div class="header-actions header-actions-desk">
           <button type="button" class="btn btn-ghost open-category-form" aria-label="Add category">
             <span class="btn-icon">+</span> Category
           </button>
@@ -32,12 +37,36 @@
           </button>
         </div>
       </div>
-      <nav class="nav-categories" aria-label="Filter by category">
+      <nav class="nav-categories nav-categories-desk" aria-label="Filter by category">
         <div class="nav-scroll">
           <button type="button" class="pill pill-active" data-category-id="">All</button>
           <div id="category-pills"></div>
         </div>
       </nav>
+
+      <!-- Mobile drawer menu -->
+      <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
+      <div class="drawer" id="drawer" aria-hidden="true">
+        <div class="drawer-head">
+          <span class="drawer-title">Menu</span>
+          <button type="button" class="drawer-close" id="drawer-close" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="drawer-actions">
+          <button type="button" class="btn btn-ghost open-category-form drawer-btn">
+            <span class="btn-icon">+</span> Category
+          </button>
+          <button type="button" class="btn btn-primary open-item-form drawer-btn">
+            <span class="btn-icon">+</span> Add Product
+          </button>
+        </div>
+        <nav class="drawer-nav" aria-label="Filter by category">
+          <p class="drawer-nav-label">Categories</p>
+          <div class="drawer-pills">
+            <button type="button" class="pill pill-active" data-category-id="" data-drawer>All</button>
+            <div id="category-pills-mobile"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <main class="main">
@@ -58,6 +87,10 @@
         </div>
       </div>
     </main>
+
+    <footer class="footer">
+      <p class="footer-credit">Design and develop by <strong>Anmol Kolhe</strong></p>
+    </footer>
   </div>
 
   <!-- Modal: Category form -->

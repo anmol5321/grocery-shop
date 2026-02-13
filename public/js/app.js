@@ -4,6 +4,11 @@ const errorState = document.getElementById('error-state');
 const sectionTitle = document.getElementById('section-title');
 const sectionSub = document.getElementById('section-sub');
 const categoryPills = document.getElementById('category-pills');
+const categoryPillsMobile = document.getElementById('category-pills-mobile');
+const hamburger = document.getElementById('hamburger');
+const drawer = document.getElementById('drawer');
+const drawerBackdrop = document.getElementById('drawer-backdrop');
+const drawerClose = document.getElementById('drawer-close');
 
 const categoryModal = document.getElementById('category-modal');
 const categoryForm = document.getElementById('category-form');
@@ -55,6 +60,7 @@ async function fetchItems(categoryId = '') {
 
 function renderCategoryPills() {
   categoryPills.innerHTML = '';
+  if (categoryPillsMobile) categoryPillsMobile.innerHTML = '';
   categories.forEach((cat) => {
     const wrap = document.createElement('span');
     wrap.className = 'pill-wrap';
@@ -66,9 +72,21 @@ function renderCategoryPills() {
       </span>
     `;
     categoryPills.appendChild(wrap);
+    if (categoryPillsMobile) {
+      const wrapM = document.createElement('span');
+      wrapM.className = 'pill-wrap';
+      wrapM.innerHTML = `<button type="button" class="pill" data-category-id="${cat.id}" data-drawer>${escapeHtml(cat.name)}</button>`;
+      categoryPillsMobile.appendChild(wrapM);
+    }
   });
   categoryPills.querySelectorAll('.pill[data-category-id]').forEach((btn) => {
     btn.addEventListener('click', () => setFilter(btn.dataset.categoryId));
+  });
+  categoryPillsMobile && categoryPillsMobile.querySelectorAll('.pill[data-category-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setFilter(btn.dataset.categoryId);
+      closeDrawer();
+    });
   });
   categoryPills.querySelectorAll('.pill-edit').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -82,15 +100,19 @@ function renderCategoryPills() {
       deleteCategory(Number(btn.dataset.id));
     });
   });
+  syncPillActiveState();
+}
+
+function syncPillActiveState() {
+  document.querySelectorAll('.pill[data-category-id]').forEach((p) => {
+    const isActive = String(p.dataset.categoryId || '') === String(currentCategoryId);
+    p.classList.toggle('pill-active', isActive);
+  });
 }
 
 function setFilter(categoryId) {
   currentCategoryId = categoryId || '';
-  document.querySelectorAll('.nav-categories .pill').forEach((p) => p.classList.remove('pill-active'));
-  const target = document.querySelector(`.nav-categories .pill[data-category-id="${categoryId}"]`);
-  if (target) target.classList.add('pill-active');
-  const allPill = document.querySelector('.nav-categories .pill[data-category-id=""]');
-  if (allPill) allPill.classList.toggle('pill-active', !categoryId);
+  syncPillActiveState();
   updateSectionHeading();
   loadItems();
 }
@@ -183,10 +205,34 @@ function fillCategorySelect() {
 }
 
 document.querySelector('.nav-categories .pill[data-category-id=""]').addEventListener('click', () => setFilter(''));
+document.querySelector('.drawer-pills .pill[data-category-id=""]')?.addEventListener('click', () => { setFilter(''); closeDrawer(); });
 
-document.querySelector('.open-category-form').addEventListener('click', () => openCategoryForm(null));
-document.querySelector('.open-item-form').addEventListener('click', () => openItemForm(null));
-document.querySelector('.empty-state .open-item-form')?.addEventListener('click', () => openItemForm(null));
+function openDrawer() {
+  drawer.setAttribute('aria-hidden', 'false');
+  drawerBackdrop.setAttribute('aria-hidden', 'false');
+  hamburger.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  drawer.setAttribute('aria-hidden', 'true');
+  drawerBackdrop.setAttribute('aria-hidden', 'true');
+  hamburger.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+
+hamburger.addEventListener('click', () => {
+  const open = drawer.getAttribute('aria-hidden') !== 'false';
+  if (open) openDrawer(); else closeDrawer();
+});
+drawerBackdrop.addEventListener('click', closeDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+
+document.querySelectorAll('.open-category-form').forEach((btn) => {
+  btn.addEventListener('click', () => { closeDrawer(); openCategoryForm(null); });
+});
+document.querySelectorAll('.open-item-form').forEach((btn) => {
+  btn.addEventListener('click', () => { closeDrawer(); openItemForm(null); });
+});
 
 document.querySelector('.open-category-form-inline').addEventListener('click', () => {
   openCategoryForm(null, () => {

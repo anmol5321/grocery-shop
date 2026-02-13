@@ -47,8 +47,13 @@ body {
 /* ----- Layout ----- */
 .app {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+.main {
+  flex: 1;
 }
 
 .content-width {
@@ -89,6 +94,217 @@ body {
     padding: 1rem 1.25rem;
     gap: 1rem;
   }
+}
+
+/* Hamburger - mobile only */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.hamburger:hover {
+  background: var(--bg-muted);
+}
+
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 1px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.hamburger[aria-expanded="true"] .hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger[aria-expanded="true"] .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger[aria-expanded="true"] .hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (min-width: 600px) {
+  .hamburger {
+    display: none;
+  }
+}
+
+/* Desktop: show header actions and nav */
+.header-actions-desk {
+  display: none;
+}
+
+.nav-categories-desk {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .header-actions-desk {
+    display: flex;
+  }
+  .nav-categories-desk {
+    display: block;
+  }
+}
+
+/* Mobile drawer */
+.drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 21;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.drawer-backdrop[aria-hidden="false"] {
+  opacity: 1;
+}
+
+.drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(300px, 85vw);
+  max-width: 300px;
+  background: var(--bg-elevated);
+  z-index: 22;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  padding-top: env(safe-area-inset-top);
+}
+
+.drawer[aria-hidden="false"] {
+  transform: translateX(0);
+}
+
+@media (min-width: 600px) {
+  .drawer-backdrop,
+  .drawer {
+    display: none !important;
+  }
+}
+
+@media (max-width: 599px) {
+  .drawer-backdrop {
+    display: block;
+    pointer-events: none;
+  }
+  .drawer-backdrop[aria-hidden="false"] {
+    pointer-events: auto;
+  }
+  .drawer {
+    display: flex;
+  }
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.drawer-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.drawer-close {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.drawer-close:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-actions .btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.drawer-nav {
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.drawer-nav-label {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.drawer-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drawer-pills .pill {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 48px;
+  padding-left: 1rem;
+}
+
+.drawer-pills .pill-wrap {
+  width: 100%;
+}
+
+.drawer-pills .pill-wrap .pill {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.drawer-pills .pill-category-actions {
+  margin-left: auto;
 }
 
 .brand {
@@ -686,27 +902,30 @@ body {
 
 /* ----- Mobile-first overrides ----- */
 @media (max-width: 599px) {
+  .header-actions-desk {
+    display: none !important;
+  }
+
+  .nav-categories-desk {
+    display: none !important;
+  }
+
   .header-inner {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
   }
 
-  .header-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .header-actions .btn {
-    width: 100%;
-    min-height: 48px;
+  .brand {
+    flex: 1;
+    min-width: 0;
   }
 
   .brand-title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
 
   .brand-tagline {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 
   .section-title {
@@ -737,4 +956,25 @@ body {
   .nav-scroll {
     padding-left: 0.75rem;
   }
+}
+
+/* ----- Footer ----- */
+.footer {
+  margin-top: auto;
+  padding: 1.25rem 1rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.footer-credit {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.footer-credit strong {
+  color: var(--primary);
+  font-weight: 600;
 }
