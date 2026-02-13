@@ -32,6 +32,9 @@ const PLACEHOLDER_IMG = 'https://placehold.co/400x400/eeede9/78716c?text=No+Imag
 let categories = [];
 let currentCategoryId = '';
 
+// Wholesaler order list: { id, name, category_name, price, quantity }
+let orderList = [];
+
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -134,10 +137,33 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
+function getOrderEntry(itemId) {
+  return orderList.find((e) => String(e.id) === String(itemId));
+}
+
+function addToOrderList(item) {
+  const entry = getOrderEntry(item.id);
+  if (entry) {
+    entry.quantity += 1;
+  } else {
+    orderList.push({
+      id: item.id,
+      name: item.name,
+      category_name: item.category_name || '',
+      price: Number(item.price) || 0,
+      quantity: 1,
+    });
+  }
+  updateOrderBadge();
+  loadItems(); // re-render cards so "Add to order" shows "In order (qty)"
+}
+
 function renderItem(item) {
   const card = document.createElement('article');
   card.className = 'card';
   const imgUrl = item.image_url || PLACEHOLDER_IMG;
+  const entry = getOrderEntry(item.id);
+  const inOrder = !!entry;
   card.innerHTML = `
     <div class="card-image-wrap">
       <img class="card-image" src="${escapeHtml(imgUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='${PLACEHOLDER_IMG}'">
@@ -149,10 +175,12 @@ function renderItem(item) {
       <p class="card-price">₹ ${Number(item.price).toFixed(2)}</p>
     </div>
     <div class="card-actions">
+      <button type="button" class="btn btn-order card-add-to-order ${inOrder ? 'in-order' : ''}" data-id="${item.id}">${inOrder ? `In order (${entry.quantity})` : 'Add to order'}</button>
       <button type="button" class="btn btn-secondary card-edit" data-id="${item.id}">Edit</button>
       <button type="button" class="btn btn-danger card-delete" data-id="${item.id}">Delete</button>
     </div>
   `;
+  card.querySelector('.card-add-to-order').addEventListener('click', () => addToOrderList(item));
   card.querySelector('.card-edit').addEventListener('click', () => openItemForm(item));
   card.querySelector('.card-delete').addEventListener('click', () => deleteItem(item.id));
   return card;
@@ -203,6 +231,114 @@ function fillCategorySelect() {
   });
   if (value) itemCategorySelect.value = value;
 }
+
+function updateOrderBadge() {
+  const total = orderList.reduce((s, e) => s + e.quantity, 0);
+  document.querySelectorAll('.order-badge').forEach((el) => { el.textContent = total; });
+}
+
+function openOrderListModal() {
+  closeDrawer();
+  renderOrderListModal();
+  document.getElementById('order-list-modal').setAttribute('aria-hidden', 'false');
+}
+
+function closeOrderListModal() {
+  document.getElementById('order-list-modal').setAttribute('aria-hidden', 'true');
+}
+
+function removeFromOrderList(itemId) {
+  orderList = orderList.filter((e) => String(e.id) !== String(itemId));
+  updateOrderBadge();
+  renderOrderListModal();
+  loadItems();
+}
+
+function updateOrderQty(itemId, qty) {
+  const n = parseInt(qty, 10) || 0;
+  const entry = orderList.find((e) => String(e.id) === String(itemId));
+  if (!entry) return;
+  if (n <= 0) {
+    removeFromOrderList(itemId);
+    return;
+  }
+  entry.quantity = n;
+  renderOrderListModal();
+}
+
+function getOrderListText() {
+  const lines = ['Wholesaler order list', '-------------------', ''];
+  orderList.forEach((e, i) => {
+    lines.push(`${i + 1}. ${e.name} (${e.category_name}) - Qty: ${e.quantity} @ ₹${Number(e.price).toFixed(2)} = ₹${(e.quantity * e.price).toFixed(2)}`);
+  });
+  const totalQty = orderList.reduce((s, e) => s + e.quantity, 0);
+  const totalAmt = orderList.reduce((s, e) => s + e.quantity * e.price, 0);
+  lines.push('');
+  lines.push(`Total items: ${totalQty}`);
+  lines.push(`Total amount: ₹${totalAmt.toFixed(2)}`);
+  return lines.join('\n');
+}
+
+function renderOrderListModal() {
+  const body = document.getElementById('order-list-body');
+  const empty = document.getElementById('order-list-empty');
+  const footer = document.getElementById('order-list-footer');
+  const totalQtyEl = document.getElementById('order-list-total-qty');
+  body.innerHTML = '';
+  if (orderList.length === 0) {
+    empty.hidden = false;
+    footer.hidden = true;
+    return;
+  }
+  empty.hidden = true;
+  footer.hidden = false;
+  const totalQty = orderList.reduce((s, e) => s + e.quantity, 0);
+  totalQtyEl.textContent = totalQty;
+  orderList.forEach((e) => {
+    const row = document.createElement('div');
+    row.className = 'order-list-row';
+    row.innerHTML = `
+      <div class="order-list-row-main">
+        <span class="order-list-name">${escapeHtml(e.name)}</span>
+        <span class="order-list-meta">${escapeHtml(e.category_name)} · ₹${Number(e.price).toFixed(2)} each</span>
+      </div>
+      <div class="order-list-row-qty">
+        <label class="sr-only" for="order-qty-${e.id}">Quantity</label>
+        <input type="number" min="1" value="${e.quantity}" id="order-qty-${e.id}" data-id="${e.id}" class="order-qty-input">
+      </div>
+      <div class="order-list-row-total">₹${(e.quantity * e.price).toFixed(2)}</div>
+      <button type="button" class="btn btn-danger btn-sm order-list-remove" data-id="${e.id}" aria-label="Remove">✕</button>
+    `;
+    body.appendChild(row);
+    row.querySelector('.order-qty-input').addEventListener('change', (ev) => updateOrderQty(ev.target.dataset.id, ev.target.value));
+    row.querySelector('.order-list-remove').addEventListener('click', () => removeFromOrderList(e.id));
+  });
+}
+
+document.getElementById('order-list-clear').addEventListener('click', () => {
+  if (!orderList.length) return;
+  if (confirm('Clear the whole order list?')) {
+    orderList = [];
+    updateOrderBadge();
+    renderOrderListModal();
+    loadItems();
+  }
+});
+document.getElementById('order-list-copy').addEventListener('click', () => {
+  const text = getOrderListText();
+  navigator.clipboard.writeText(text).then(() => alert('Order list copied to clipboard.')).catch(() => alert('Could not copy. Try Print instead.'));
+});
+document.getElementById('order-list-print').addEventListener('click', () => {
+  const win = window.open('', '_blank');
+  win.document.write('<pre style="font-family: sans-serif; padding: 1rem;">' + escapeHtml(getOrderListText()) + '</pre>');
+  win.document.close();
+  win.print();
+  win.close();
+});
+
+document.querySelectorAll('.open-order-list').forEach((btn) => {
+  btn.addEventListener('click', () => { openOrderListModal(); });
+});
 
 document.querySelector('.nav-categories .pill[data-category-id=""]').addEventListener('click', () => setFilter(''));
 document.querySelector('.drawer-pills .pill[data-category-id=""]')?.addEventListener('click', () => { setFilter(''); closeDrawer(); });
@@ -361,6 +497,10 @@ document.getElementById('category-modal').querySelectorAll('[data-close]').forEa
 
 document.getElementById('item-modal').querySelectorAll('[data-close]').forEach((el) => {
   el.addEventListener('click', () => closeItemForm());
+});
+
+document.getElementById('order-list-modal').querySelectorAll('.modal-backdrop, [data-close]').forEach((el) => {
+  el.addEventListener('click', () => closeOrderListModal());
 });
 
 loadCategories().then(() => loadItems());

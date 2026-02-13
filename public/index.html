@@ -29,6 +29,9 @@
           </div>
         </div>
         <div class="header-actions header-actions-desk">
+          <button type="button" class="btn btn-ghost open-order-list" aria-label="Order list" title="Wholesaler order list">
+            <span class="btn-icon">📋</span> Order list <span class="order-badge" id="order-badge-desk">0</span>
+          </button>
           <button type="button" class="btn btn-ghost open-category-form" aria-label="Add category">
             <span class="btn-icon">+</span> Category
           </button>
@@ -52,6 +55,9 @@
           <button type="button" class="drawer-close" id="drawer-close" aria-label="Close menu">&times;</button>
         </div>
         <div class="drawer-actions">
+          <button type="button" class="btn btn-ghost open-order-list drawer-btn">
+            <span class="btn-icon">📋</span> Order list <span class="order-badge" id="order-badge-mobile">0</span>
+          </button>
           <button type="button" class="btn btn-ghost open-category-form drawer-btn">
             <span class="btn-icon">+</span> Category
           </button>
@@ -109,6 +115,31 @@
           <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </form>
+    </div>
+  </aside>
+
+  <!-- Modal: Wholesaler order list -->
+  <aside class="modal" id="order-list-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="order-list-title">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-box modal-box-order">
+      <h2 class="modal-title" id="order-list-title">Wholesaler order list</h2>
+      <p class="order-list-sub">Use this list to order from your wholesaler. Edit quantities below.</p>
+      <div class="order-list-body" id="order-list-body"></div>
+      <div class="order-list-empty" id="order-list-empty">
+        <p>No items in the order list.</p>
+        <p class="order-list-empty-hint">Tap “Add to order” on any product to add it here.</p>
+      </div>
+      <div class="order-list-footer" id="order-list-footer" hidden>
+        <div class="order-list-total">
+          <span>Total items</span>
+          <strong id="order-list-total-qty">0</strong>
+        </div>
+        <div class="order-list-actions">
+          <button type="button" class="btn btn-secondary" id="order-list-clear">Clear list</button>
+          <button type="button" class="btn btn-ghost" id="order-list-copy">Copy list</button>
+          <button type="button" class="btn btn-primary" id="order-list-print">Print</button>
+        </div>
+      </div>
     </div>
   </aside>
 
