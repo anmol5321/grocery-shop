@@ -1,0 +1,20 @@
+{
+  "name": "grocery-shop-inventory",
+  "version": "1.0.0",
+  "description": "Grocery shop inventory manager - snacks, biscuits, masale, chocolates",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "init-db": "node scripts/init-db.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["grocery", "inventory", "shop"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.6.0",
+    "express": "^4.21.0"
+  }
+}
